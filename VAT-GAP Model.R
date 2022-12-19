@@ -19,8 +19,6 @@ TIP:
           - Standard_VAT_Rate;
           - Preferential_VAT_Rate.
       
-   Taxable proportions can not be change independently.You must change both in the same time.
-     
      After changing policy parameters, you need to press the button for synchronizing, and after that the button Done.
      
      3. With choosing one this command programm with itterate thorugh other modules and with produce VAT-Dashboard in html format.
@@ -31,8 +29,8 @@ TIP:
     '          
 
 # Setting up path to directory with data 
-  #path<-"C:/Simulation/VAT-GAP-model/DATA/INPUT" #<----Set your path here for data 
-  #path1<-"C:/Simulation/VAT-GAP-model" #<----Set your path here for the scripts
+  path<-"C:/Simulation/VAT-GAP-model/DATA/INPUT" #<----Set your path here for data
+  path1<-"C:/Simulation/VAT-GAP-model" #<----Set your path here for the scripts
 
         # 1.INPUT PARAMETERS FOR SIMULATION -----------------------------------------
 
