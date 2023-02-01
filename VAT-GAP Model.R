@@ -1,5 +1,7 @@
 'VAT-GAP MODEL 
 
+Before you start please check the version of the R.This model is tested on R 4.2.2
+
 TIP:
       To execute this code, you can highlight the code CTRL + A and after that,press CTRL + Enter.
 
@@ -101,14 +103,19 @@ TIP:
 
                    
                     SIMULATION<-TAXABLE_PROPORTION_IMPORT
-                    SIMULATION$Current_Policy_Exempt[41] = 0 #  Imputed rents of owner-occupied dwellings with the industry code: 68A/ 68A
+                    SIMULATION$Current_Policy_Exempt[42] = 0 #  Imputed rents of owner-occupied dwellings with the industry code: 68A/ 68A
                     SIMULATION$Standard_VAT_Rate = standard_VAT_rate
-                    SIMULATION$Standard_VAT_Rate[41] = 0 # This is the industry: Imputed rents of owner-occupied dwellings with the industry code: 68A/ 68A
+                    SIMULATION$Standard_VAT_Rate[42] = 0 # This is the industry: Imputed rents of owner-occupied dwellings with the industry code: 68A/ 68A
                     SIMULATION$Preferential_VAT_Rate = preferential_VAT_rate
                     SIMULATION$Simulation_Toggles_Exempt = NA
                     SIMULATION$Simulation_Toggles_Exempt[SIMULATION$PRODUCT_INDUSTRY_CODE == 85] = 1
                     SIMULATION$Simulation_Toggles_Exempt[SIMULATION$PRODUCT_INDUSTRY_CODE == 86] = 1
                     SIMULATION$Simulation_Toggles_Reduced_Rate = NA
+                    
+                    # SIMULATION$Current_Policy_Exempt[42] = 0 #  Imputed rents of owner-occupied dwellings with the industry code: 68A/ 68A
+                    # SIMULATION$Standard_VAT_Rate[42] = 0 # This is the industry: Imputed rents of owner-occupied dwellings with the industry code: 68A/ 68A
+                    # 
+                    #SIMULATION$Current_Policy_Exempt[SIMULATION$PRODUCT_INDUSTRY_CODE == '68B'] = 0.2656
                     
                     # # Base for calculation 
                      SIMULATION_CALIBRATION_FACTOR<-SIMULATION
