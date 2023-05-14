@@ -29,7 +29,6 @@ TIP:
      
         The dashboard you can find in rooth of the VAT-GAP model and you can open it in the browsers (eg, Chrome, Firefox etc.)
     '          
-
 # Setting up path to directory with data 
   path<-"C:/Simulation/VAT-GAP-model/DATA/INPUT" #<----Set your path here for data
   path1<-"C:/Simulation/VAT-GAP-model" #<----Set your path here for the scripts
