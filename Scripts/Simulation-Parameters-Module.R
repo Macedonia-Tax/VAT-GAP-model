@@ -115,9 +115,9 @@ dplyr:: rename(c("CPA"="PRODUCT_INDUSTRY_CODE",
 
 
 # Download pic
-logo_pic <- 'https://1000logos.net/wp-content/uploads/2020/04/The_World_Bank_logo_PNG4.png'
+logo_pic <- 'https://seeklogo.com/images/T/the-world-bank-logo-73595059AD-seeklogo.com.png'
 
-#logo_pic <- 'https://raw.githubusercontent.com/DillonHammill/DataEditR/master/vignettes/DataEditR/DataEditR-Car.png'
+
 
 SIMULATION<-data_edit(SIMULATION,logo =logo_pic,
                       logo_size = 80,
