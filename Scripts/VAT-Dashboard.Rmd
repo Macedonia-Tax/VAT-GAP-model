@@ -1,0 +1,2264 @@
+---
+title: "VAT Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+   
+---
+
+<style type="text/css">
+.value-box .value {
+    color: white;
+}
+.value-box .caption {
+    color: white;
+}
+</style>
+
+
+```{r setup, include=FALSE}
+
+# path<-"C:/Users/wb591157/OneDrive - WBG/Documents/Models/VAT-GAP/DATA/INPUT"
+setwd(path)
+getwd()
+
+# Import data business as usual
+Results_1_bu <- read_excel("export_data_bu.xlsx",sheet="Results_1_bu")
+revenue_vat_total_bu <- read_excel("export_data_bu.xlsx",sheet="revenue_vat_total_bu")
+Est_Rev_bu<- read_excel("export_data_bu.xlsx",sheet="Est_Rev1_bu")
+effective_vat_rates_bu<- read_excel("export_data_bu.xlsx",sheet="effective_vat_rates_bu")
+hbs_bu<- read_excel("export_data_bu.xlsx",sheet="hbs_bu")
+Simulation_Results_1_te<-read_excel("export_data_bu.xlsx",sheet="te_bu")
+
+# Main result
+Main_Results <- read_excel("export_data.xlsx",sheet="Main_Results")
+Revenue_VAT_TOTAL <- read_excel("export_data.xlsx",sheet="Revenue_VAT_TOTAL")
+Result_Simulation <- read_excel("export_data.xlsx",sheet="Result_Simulation")
+Revenue_VAT_TOTAL <- read_excel("export_data.xlsx",sheet="Revenue_VAT_TOTAL")
+Results_1 <- read_excel("export_data.xlsx",sheet="Results_1")
+Est_Rev1<- read_excel("export_data.xlsx",sheet="Est_Rev1")
+effective_vat_rates<-read_excel("export_data.xlsx",sheet="effective_vat_rates")
+hbs<- read_excel("export_data.xlsx",sheet="hbs")
+
+Simulation_Results_1<- read_excel("export_data.xlsx",sheet="Results_1")
+Simulation<- read_excel("simulation.xlsx",sheet="simulation")
+NACE_NAMES<- read_excel("simulation.xlsx",sheet="NACE_NAMES")
+VAT_FORECAST<- read_excel("simulation.xlsx",sheet="FINAL_VAT_REVENUES")
+
+
+# Structure of revenues
+
+DATA_PLOT3 <- read_excel("MACRO_FISCAL_INDICATORS.xlsx", 
+                                           sheet = "MediumTermForecast")
+                  
+                  DATA_PLOT3<-DATA_PLOT3[,1:14]
+                  DATA_PLOT3<-data.frame(lapply(DATA_PLOT3,as.integer)) 
+
+FINAL_FORECASTING_PLOTLY<-DATA_PLOT3%>%
+  select(Year,PIT,CIT,VAT_NET,EXCISE,CUSTOMS_DUTIES,SSC)
+
+
+color_1 <- "#ba181b"
+
+
+
+# Define fonts
+t <- list(
+        family = "Arial",
+        size = 12
+      )
+
+
+t_8 <- list(
+        family = "Arial",
+        size = 8,
+        face="bold"
+      )
+
+t_10 <- list(
+        family = "Arial",
+        size = 10,
+        face="bold"
+      )
+
+
+t_16 <- list(
+        family = "Arial",
+        size = 16,
+        face="bold"
+      )
+
+# Colors in treemaps
+ colr = c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#17becf', '#57a9e2', 
+         '#ffb574', '#5fd35f', '#7f7f7f', '#e77c7c', '#c6aedc', '#bcbd22', 
+         '#bc8b81', '#f4cce8', '#b2b2b2', '#9467bd', '#e2e362', '#e377c2', 
+         '#5fe0ed', '#8c564b', '#103d5d', '#a74e00',
+         
+         '#1f77b4', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#57a9e2', 
+         '#ffb574', '#5fd35f', '#2ca02c', '#e77c7c', '#c6aedc', '#d62728', 
+         '#bc8b81', '#f4cce8', '#b2b2b2', '#9467bd', '#ff7f0e', '#e2e362', 
+         '#5fe0ed', '#8c564b', '#103d5d', '#a74e00',
+         
+         '#1f77b4', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#57a9e2', 
+         '#ffb574', '#5fd35f', '#2ca02c', '#e77c7c', '#c6aedc', '#d62728', 
+         '#bc8b81', '#f4cce8', '#b2b2b2', '#9467bd', '#ff7f0e', '#e2e362', 
+         '#5fe0ed', '#8c564b'
+         
+         )
+    
+        
+```
+
+# Intro
+
+This dashboard include several types of results:
+
+-	Decomposition of VAT GAP
+-	Policy Simulation
+-	Structure of non-refundable VAT by sectors
+-	Estimation of tax expenditures
+-	Estimation of effective VAT rates
+-	Distributional impacts of a policy on households by COICOP
+
+
+Definitions for VAT-GAP:
+
+- Total VAT Gap: difference between the VAT control total and benchmark VAT;
+- Policy Gap: additional revenue that would be gained if the tax relief granted through
+policy decisions was eliminated; and
+- Compliance Gap: Total VAT gap less the component attributable to policy decisions.
+
+
+
+Historic
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Revenue collection in nominal terms
+
+```{r}
+
+t_df <- data.frame((FINAL_FORECASTING_PLOTLY[,-1]))
+t_df_pct <- t_df
+t_df_pct[,1:(ncol(FINAL_FORECASTING_PLOTLY)-1)] <-t_df_pct[,1:(ncol(FINAL_FORECASTING_PLOTLY)-1)]/rowSums(t_df_pct[,1:(ncol(FINAL_FORECASTING_PLOTLY)-1)])
+Years<-c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+         "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019")
+
+t_df_pct1<-cbind(Years ,t_df_pct)
+t_df_pct1<-t_df_pct1[1:20,]
+t_df_pct1$Years<- factor(t_df_pct1$Years, levels = c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+                                                     "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019"
+                                                     ))
+t_df_pct1$Years<- factor(t_df_pct1$Years)
+t_df_pct2<-melt(t_df_pct1, id.vars = c("Years"))
+t_df_pct2$color <- factor(t_df_pct2$variable, labels = c("forestgreen", "brown", "orange", "red", "cyan",
+                                                         "royalblue"))
+
+
+t_df_1_1 <- data.frame((FINAL_FORECASTING_PLOTLY[,-1]))
+t_df_1_pct <- t_df_1_1
+Years<-c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+         "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019"
+        )
+
+t_df_1_pct1<-cbind(Years ,t_df_1_pct)
+t_df_1_pct1<-t_df_1_pct1[1:20,]
+t_df_1_pct1$Years<- factor(t_df_1_pct1$Years, levels = c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+                                                         "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019"
+                                                         ))
+t_df_1_pct1$Years<- factor(t_df_1_pct1$Years)
+t_df_1_pct2<-melt(t_df_1_pct1, id.vars = c("Years"))
+t_df_1_pct2$color <- factor(t_df_1_pct2$variable, labels = c("forestgreen", "brown", "orange", "red", "cyan",
+                                                             "royalblue"))
+
+
+
+Compsition_TaxSSC_Revenues <- plot_ly(t_df_1_pct2, x = ~Years, y = ~value*1000000,
+                                      type = 'bar',
+                                      marker = list(color = ~color), name = ~variable) %>%
+  layout(title = " ",
+         yaxis = list(title = ''), 
+         xaxis = list(title = ''),
+         barmode = 'stack')
+Compsition_TaxSSC_Revenues<-ggplotly(Compsition_TaxSSC_Revenues)
+Compsition_TaxSSC_Revenues <- Compsition_TaxSSC_Revenues %>% layout(legend = list(orientation = 'h'))           
+Compsition_TaxSSC_Revenues          
+
+
+```
+
+### VAT revenues and VAT revenues as percentage of GDP
+
+```{r,eval=TRUE}
+
+VAT_FORECAST_HISTORIC<-VAT_FORECAST%>%
+  dplyr::filter(Year<2020)%>%
+  dplyr::select(Year,Nominal_VAT_NET,share_gdp)
+  
+ VAT_FORECAST_HISTORIC$Nominal_VAT_NET<- (VAT_FORECAST_HISTORIC$Nominal_VAT_NET)*1000000
+
+                                  fig <- plot_ly(VAT_FORECAST_HISTORIC)
+                                  
+                                  fig <- fig %>% add_trace(x = ~Year, y = ~Nominal_VAT_NET, type = 'bar', name = 'GDP',
+                                                           marker = list(color = 'royalblue')
+                                                            )
+                                fig <- fig %>% add_trace(x = ~Year, y = ~share_gdp*100, type = 'scatter', mode = 'lines', name = 'Share of VAT in GDP', yaxis = 'y2', marker = list(color = 'red'),
+                                                         line = list(dash = "dash",width=5)
+                                                         
+                                                         )
+                                fig <- fig %>% layout(title = ' ',
+                                                      xaxis = list(title = "",font = t_8),
+                                                      yaxis = list(side = 'left', title = '', font = t_8,showgrid = FALSE, zeroline = FALSE),
+                                                      yaxis2 = list(side = 'right', overlaying = "y", title = '',font = t_8, showgrid = FALSE, zeroline = FALSE))
+
+fig <- fig %>%layout(legend = list(orientation = 'h'))
+
+fig
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Structure of tax and SSC in percentage
+
+```{r,eval=TRUE}
+
+Compsition_TaxSSC_Revenues <- plot_ly(t_df_pct2, x = ~Years, y = ~value,
+                                      type = 'bar',
+                                      marker = list(color = ~color), name = ~variable) %>%
+  layout(title = " ",
+         yaxis = list(title = ''), 
+          xaxis = list(title = ''),
+         barmode = 'stack')
+Compsition_TaxSSC_Revenues<-ggplotly(Compsition_TaxSSC_Revenues)
+Compsition_TaxSSC_Revenues <- Compsition_TaxSSC_Revenues %>% layout(legend = list(orientation = 'h'))         
+
+Compsition_TaxSSC_Revenues
+          
+```
+
+
+### Structure of indirect taxes
+
+```{r,eval=TRUE}
+
+
+FINAL_FORECASTING_PLOTLY<-DATA_PLOT3%>%
+  select(Year,VAT_NET,EXCISE)
+
+t_df <- data.frame((FINAL_FORECASTING_PLOTLY[,-1]))
+t_df_pct <- t_df
+t_df_pct[,1:(ncol(FINAL_FORECASTING_PLOTLY)-1)] <-t_df_pct[,1:(ncol(FINAL_FORECASTING_PLOTLY)-1)]/rowSums(t_df_pct[,1:(ncol(FINAL_FORECASTING_PLOTLY)-1)])
+Years<-c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+         "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019")
+
+t_df_pct1<-cbind(Years ,t_df_pct)
+t_df_pct1<-t_df_pct1[1:20,]
+t_df_pct1$Years<- factor(t_df_pct1$Years, levels = c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+                                                     "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019"
+                                                     ))
+t_df_pct1$Years<- factor(t_df_pct1$Years)
+t_df_pct2<-melt(t_df_pct1, id.vars = c("Years"))
+t_df_pct2$color <- factor(t_df_pct2$variable, labels = c("orange", "red"))
+
+
+t_df_1_1 <- data.frame((FINAL_FORECASTING_PLOTLY[,-1]))
+t_df_1_pct <- t_df_1_1
+Years<-c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+         "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019"
+        )
+
+t_df_1_pct1<-cbind(Years ,t_df_1_pct)
+t_df_1_pct1<-t_df_1_pct1[1:20,]
+t_df_1_pct1$Years<- factor(t_df_1_pct1$Years, levels = c("2000","2001","2002","2003","2004","2005","2006","2007","2008","2009",
+                                                         "2010","2011","2012","2013","2014","2015","2016","2017","2018","2019"
+                                                         ))
+t_df_1_pct1$Years<- factor(t_df_1_pct1$Years)
+t_df_1_pct2<-melt(t_df_1_pct1, id.vars = c("Years"))
+t_df_1_pct2$color <- factor(t_df_1_pct2$variable, labels = c("orange", "red"))
+
+
+Compsition_TaxSSC_Revenues <- plot_ly(t_df_pct2, x = ~Years, y = ~value,
+                                      type = 'bar',
+                                      marker = list(color = ~color), name = ~variable) %>%
+  layout(title = " ",
+         yaxis = list(title = ''), 
+          xaxis = list(title = ''),
+         barmode = 'stack')
+Compsition_TaxSSC_Revenues<-ggplotly(Compsition_TaxSSC_Revenues)
+Compsition_TaxSSC_Revenues <- Compsition_TaxSSC_Revenues %>% layout(legend = list(orientation = 'h'))         
+
+Compsition_TaxSSC_Revenues
+                       
+```
+
+
+Policy variables
+=======================================================================
+
+
+Row  {.tabset}
+-----------------------------------------------------------------------
+
+### Simulation parametars
+```{r,eval=TRUE}
+
+df<-Simulation%>%
+  select(PRODUCT_INDUSTRY_CODE,Standard_VAT_Rate,Preferential_VAT_Rate,Simulated_Policy_Exempt,Simulated_Policy_Reduced_Rate,Simulated_Policy_Fully_Taxable)
+
+df<-left_join(NACE_NAMES,df,by = c("PRODUCT_INDUSTRY_CODE"))%>%
+dplyr::arrange(PRODUCT_INDUSTRY_CODE)
+
+df<-df%>%
+  dplyr::rename(c("CPA Division"= "PRODUCT_INDUSTRY_CODE",
+                  "Description"= "PRODUCT_INDUSTRY_NAME",
+                  "Standard Rate"="Standard_VAT_Rate",
+                  "Preferential rate"="Preferential_VAT_Rate",
+                  "Exempted Share"="Simulated_Policy_Exempt",
+                  "Reduced Rate Share"= "Simulated_Policy_Reduced_Rate",
+                  "Standard Rate Share"= "Simulated_Policy_Fully_Taxable",
+                  "Exempted Share(%)"="Simulated_Policy_Exempt",
+                  "Reduced Rate Share (%)"= "Simulated_Policy_Reduced_Rate",
+                  "Standard Rate Share (%)"= "Simulated_Policy_Fully_Taxable"
+  ))
+
+df$`Reduced Rate Share (%)`<-round(df$`Reduced Rate Share (%)`,4)
+df$`Standard Rate Share (%)`<-round(df$`Standard Rate Share (%)`,4)
+
+
+datatable(df,
+          caption = "Simulation parametars",
+          rownames = T,
+          filter = "top",
+         extensions='Buttons',
+          options = list(pageLength = 64,
+
+          dom = 'Blfrtip',
+          buttons=c('copy','csv','excel','print'),
+          lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
+
+```
+
+### Links
+
+SUPPLY AND USE TABLES
+https://www.stat.gov.mk/IOTabeli.aspx
+
+Classification of products by activity 
+https://www.stat.gov.mk/KlasifikaciiNomenklaturi_en.aspx?id=3
+
+VAT-GAP EU
+https://taxation-customs.ec.europa.eu/business/vat/vat-gap_en
+
+
+
+Decomposition of VAT GAP
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Comparison VAT Gap (in LCU)
+```{r,eval=TRUE}
+
+ df_plot<-Main_Results%>%
+  dplyr::select(Benchmark_VAT_M_of_denars,Uncalibrated_VAT_Est.M_of_denars,Calibrated_VAT_Est.M_of_denars)%>%
+  data.table()
+colnames(df_plot) <- c('Benchmark VAT', 'Uncalibrated VAT', 'Calibrated VAT')
+df_plot<-df_plot*1000000 # Conversion in billions for Plotly
+    df <-melt(df_plot) %>%
+    dplyr:: arrange(desc(value))%>%
+                  data.table()
+
+    fig <- plot_ly(df, x = ~variable    , y = ~value, type = 'bar',
+                    marker = list(color = c('#2ca02c', '#ff7f0e','#d62728', '#1f77b4','#9370DB','#8c564b')))
+    fig <- fig%>% layout(title = " ", xaxis = list(title= ""),yaxis = list(title= " "),
+                         annotations =
+                           list(x = 0, y = -0.131,
+                                title = " ",
+                                text = " ",
+                                showarrow = F,
+                                xref='paper',
+                                yref='paper',align='left')) 
+
+    fig
+
+```
+
+
+### Total VAT Gap (in percetange)
+```{r,eval=TRUE}
+df_plot<-Main_Results%>%
+  dplyr::select(Total_VAT_Gap.Prc)%>%
+  data.table()
+colnames(df_plot) <- c('Total_VAT_Gap')
+
+gg.gauge <- function(pos,breaks=c(0,15,30,100)) {
+  require(ggplot2)
+  get.poly <- function(a,b,r1=0.5,r2=1.0) {
+    th.start <- pi*(1-a/100)
+    th.end   <- pi*(1-b/100)
+    th       <- seq(th.start,th.end,length=100)
+    x        <- c(r1*cos(th),rev(r2*cos(th)))
+    y        <- c(r1*sin(th),rev(r2*sin(th)))
+    return(data.frame(x,y))
+  }
+  ggplot()+ 
+    geom_polygon(data=get.poly(breaks[1],breaks[2]),aes(x,y),fill="#2ca02c")+
+    geom_polygon(data=get.poly(breaks[2],breaks[3]),aes(x,y),fill="#ff7f0e")+
+    geom_polygon(data=get.poly(breaks[3],breaks[4]),aes(x,y),fill="#d62728")+
+    geom_polygon(data=get.poly(pos-1,pos+1,0.2),aes(x,y))+
+    geom_text(data=as.data.frame(breaks), size=5,vjust=0,
+              aes(x=1.1*cos(pi*(1-breaks/100)),y=1.1*sin(pi*(1-breaks/100)),label=paste0(breaks,"%")))+
+    annotate("text",x=0,y=0,label=pos,vjust=0,size=8)+
+    coord_fixed()+
+    theme_bw()+
+    theme(axis.text=element_blank(),
+          axis.title=element_blank(),
+          axis.ticks=element_blank(),
+          panel.grid=element_blank(),
+          panel.border=element_blank()) 
+}
+gg.gauge(round(df_plot$Total_VAT_Gap*100,2),breaks=c(0,15,30,100))
+
+
+```
+
+
+### Policy Gap (in percetange)
+```{r,eval=TRUE}
+df_plot<-Main_Results%>%
+  dplyr::select(Policy_Gap.Prc)%>%
+  data.table()
+colnames(df_plot) <- c('Policy Gap')
+
+gg.gauge <- function(pos,breaks=c(0,15,30,100)) {
+  require(ggplot2)
+  get.poly <- function(a,b,r1=0.5,r2=1.0) {
+    th.start <- pi*(1-a/100)
+    th.end   <- pi*(1-b/100)
+    th       <- seq(th.start,th.end,length=100)
+    x        <- c(r1*cos(th),rev(r2*cos(th)))
+    y        <- c(r1*sin(th),rev(r2*sin(th)))
+    return(data.frame(x,y))
+  }
+  ggplot()+ 
+    geom_polygon(data=get.poly(breaks[1],breaks[2]),aes(x,y),fill="#2ca02c")+
+    geom_polygon(data=get.poly(breaks[2],breaks[3]),aes(x,y),fill="#ff7f0e")+
+    geom_polygon(data=get.poly(breaks[3],breaks[4]),aes(x,y),fill="#d62728")+
+    geom_polygon(data=get.poly(pos-1,pos+1,0.2),aes(x,y))+
+    geom_text(data=as.data.frame(breaks), size=5, vjust=0,
+              aes(x=1.1*cos(pi*(1-breaks/100)),y=1.1*sin(pi*(1-breaks/100)),label=paste0(breaks,"%")))+
+    annotate("text",x=0,y=0,label=pos,vjust=0,size=8)+
+    coord_fixed()+
+    theme_bw()+
+    theme(axis.text=element_blank(),
+          axis.title=element_blank(),
+          axis.ticks=element_blank(),
+          panel.grid=element_blank(),
+          panel.border=element_blank()) 
+}
+gg.gauge(round(df_plot$`Policy Gap`*100,2),breaks=c(0,15,30,100))
+
+```
+
+
+
+
+Row
+-----------------------------------------------------------------------
+
+### Comparison VAT revenues (in LCU)
+
+```{r,eval=TRUE}
+ 
+df_plot<-Main_Results%>%
+  dplyr::select(Total_VAT_Gap.M_of_denars,Policy_Gap.M_of_denars,Compliance_Gap.M_of_denars)%>%
+  data.table()
+colnames(df_plot) <- c('Total VAT Gap', 'Policy Gap ', 'Compliance Gap')
+df_plot<-df_plot*1000000 # Conversion in billions for Plotly
+    df <-melt(df_plot) %>%
+    dplyr:: arrange(desc(value))%>%
+                  data.table()
+
+    fig <- plot_ly(df, x = ~variable    , y = ~value, type = 'bar',
+                    marker = list(color = c('#2ca02c', '#ff7f0e','#d62728')))
+    fig <- fig%>% layout(title = " ", xaxis = list(title= ""),yaxis = list(title= " "),
+                         annotations =
+                           list(x = 0, y = -0.131,
+                                title = "",
+                                text = "",
+                                showarrow = F,
+                                xref='paper',
+                                yref='paper',align='left')) 
+
+    fig
+    
+                                  
+
+```
+
+
+### Compliance GAP (in percetange)
+
+```{r,eval=TRUE}
+df_plot<-Main_Results%>%
+  dplyr::select(Compliance_Gap.Prc)%>%
+  data.table()
+colnames(df_plot) <- c('Compliance VAT Gap')
+
+gg.gauge <- function(pos,breaks=c(0,15,30,100)) {
+  require(ggplot2)
+  get.poly <- function(a,b,r1=0.5,r2=1.0) {
+    th.start <- pi*(1-a/100)
+    th.end   <- pi*(1-b/100)
+    th       <- seq(th.start,th.end,length=100)
+    x        <- c(r1*cos(th),rev(r2*cos(th)))
+    y        <- c(r1*sin(th),rev(r2*sin(th)))
+    return(data.frame(x,y))
+  }
+  ggplot()+ 
+   geom_polygon(data=get.poly(breaks[1],breaks[2]),aes(x,y),fill="#2ca02c")+
+    geom_polygon(data=get.poly(breaks[2],breaks[3]),aes(x,y),fill="#ff7f0e")+
+    geom_polygon(data=get.poly(breaks[3],breaks[4]),aes(x,y),fill="#d62728")+
+    geom_polygon(data=get.poly(pos-1,pos+1,0.2),aes(x,y))+
+    geom_text(data=as.data.frame(breaks), size=5, vjust=0,
+              aes(x=1.1*cos(pi*(1-breaks/100)),y=1.1*sin(pi*(1-breaks/100)),label=paste0(breaks,"%")))+
+    annotate("text",x=0,y=0,label=pos,vjust=0,size=8)+
+    coord_fixed()+
+    theme_bw()+
+    theme(axis.text=element_blank(),
+          axis.title=element_blank(),
+          axis.ticks=element_blank(),
+          panel.grid=element_blank(),
+          panel.border=element_blank()) 
+}
+gg.gauge(round(df_plot$`Compliance VAT Gap`*100,2),breaks=c(0,15,30,100))
+
+
+```
+
+
+
+
+### C-Efficiency (in percetange)
+
+```{r,eval=TRUE}
+VAT_COLLECTION2019<-52059
+NOMINAL_GDP2019<- 550683
+
+C_EFFICIENCY<-(VAT_COLLECTION2019/(NOMINAL_GDP2019*0.18))
+
+gg.gauge <- function(pos,breaks=c(0,40,50,100)) {
+  require(ggplot2)
+  get.poly <- function(a,b,r1=0.5,r2=1.0) {
+    th.start <- pi*(1-a/100)
+    th.end   <- pi*(1-b/100)
+    th       <- seq(th.start,th.end,length=100)
+    x        <- c(r1*cos(th),rev(r2*cos(th)))
+    y        <- c(r1*sin(th),rev(r2*sin(th)))
+    return(data.frame(x,y))
+  }
+  ggplot()+ 
+   geom_polygon(data=get.poly(breaks[1],breaks[2]),aes(x,y),fill="#2ca02c")+
+    geom_polygon(data=get.poly(breaks[2],breaks[3]),aes(x,y),fill="#ff7f0e")+
+    geom_polygon(data=get.poly(breaks[3],breaks[4]),aes(x,y),fill="#d62728")+
+    geom_polygon(data=get.poly(pos-1,pos+1,0.2),aes(x,y))+
+    geom_text(data=as.data.frame(breaks), size=5,  vjust=0,
+              aes(x=1.1*cos(pi*(1-breaks/100)),y=1.1*sin(pi*(1-breaks/100)),label=paste0(breaks,"%")))+
+    annotate("text",x=0,y=0,label=pos,vjust=0,size=8)+
+    coord_fixed()+
+    theme_bw()+
+    theme(axis.text=element_blank(),
+          axis.title=element_blank(),
+          axis.ticks=element_blank(),
+          panel.grid=element_blank(),
+          panel.border=element_blank()) 
+}
+gg.gauge(round(C_EFFICIENCY*100,2),breaks=c(0,40,50,100))
+
+```
+
+
+VAT structure by sectors
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### VAT revenues from Industries (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Total_Revenues_from_Intermediate_Inputs)
+
+
+valueBox(round(sum(df_plot$Total_Revenues_from_Intermediate_Inputs),0),
+         icon="fa-chart-pie",
+          color = "blue")
+```
+
+
+### VAT revenues from industries 
+
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Total_Revenues_from_Intermediate_Inputs)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)%>%
+      dplyr::arrange(desc(value))
+    
+    df$SUT_division<-"CPA division"
+
+
+treemap<-plot_ly(data = df, type = "treemap", values = ~value, labels = ~PRODUCT_INDUSTRY_CODE,
+        parents = ~SUT_division, name = " ",
+        marker = list(colors = setNames(colr, unique(df$PRODUCT_INDUSTRY_CODE))), # <- mod here!
+        textinfo="label+value+percent parent")  %>%
+  layout(title="")    
+    
+  
+    treemap
+
+    
+
+
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from NPISH (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_NPISH)
+
+
+valueBox(round(sum(df_plot$Final_Demand_NPISH),0),
+         icon="fa-chart-pie",
+          color = "red"
+         )
+```
+
+
+### VAT revenues from NPISH 
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_NPISH)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)%>%
+      dplyr::arrange(desc(value))
+    
+    df$SUT_division<-"CPA Divisions"
+
+        treemap<-plot_ly(data = df, type = "treemap", values = ~value, labels = ~PRODUCT_INDUSTRY_CODE,
+        parents = ~SUT_division, name = " ",
+        marker = list(colors = setNames(colr, unique(df$PRODUCT_INDUSTRY_CODE))), # <- mod here!
+        textinfo="label+value+percent parent")  %>%
+  layout(title="")    
+    
+    
+      treemap
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+### VAT revenues from Government (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Government)
+
+
+valueBox(round(sum(df_plot$Final_Demand_Government),0),
+         icon="fa-chart-pie",
+          color = "orange")
+```
+
+
+### VAT revenues from Government 
+
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Government)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)%>%
+      dplyr::arrange(desc(value))
+    
+    df$SUT_division<-"CPA Divisions"
+
+    
+            treemap<-plot_ly(data = df, type = "treemap", values = ~value, labels = ~PRODUCT_INDUSTRY_CODE,
+        parents = ~SUT_division, name = " ",
+        marker = list(colors = setNames(colr, unique(df$PRODUCT_INDUSTRY_CODE))), # <- mod here!
+        textinfo="label+value+percent parent")  %>%
+  layout(title="")    
+
+    treemap
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from households (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_HH)
+
+
+valueBox(round(sum(df_plot$Final_Demand_HH),0),
+         icon="fa-chart-pie",
+          color = "green")
+```
+
+
+### VAT revenues from households 
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_HH)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)%>%
+      dplyr::arrange(desc(value))
+    
+    df$SUT_division<-"CPA Divisions"
+
+         treemap<-plot_ly(data = df, type = "treemap", values = ~value, labels = ~PRODUCT_INDUSTRY_CODE,
+        parents = ~SUT_division, name = " ",
+        marker = list(colors = setNames(colr, unique(df$PRODUCT_INDUSTRY_CODE))), # <- mod here!
+        textinfo="label+value+percent parent")  %>%
+  layout(title="")    
+    
+    treemap
+``` 
+
+Tax expenditures
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Total tax expenditures (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Simulation_Results_1_te
+
+valueBox(round(sum(df_plot$Simulation_Results_1_te),0),
+         icon="fa-chart-line",
+          color = "blue")
+```
+
+
+### Tax expenditures accross CPA divisions (in LCU millions)
+
+```{r,eval=TRUE}
+ 
+dat_r<-Est_Rev_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+dat_te<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+
+ dat<-left_join(dat_r,dat_te,by = c("PRODUCT_INDUSTRY_CODE"))%>%
+    select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total.y,Final_Demand_Total.x)
+
+
+colnames(dat) <- c('NACE', 'vat_revenue_before','vat_revenue_after')
+
+plt <- plot_ly(dat) %>% 
+  add_trace(x = ~NACE, y = ~vat_revenue_before, type = 'bar', name = 'With current VAT rates') %>% 
+  add_trace(x = ~NACE, y = ~vat_revenue_after, type = 'bar', name = 'With standard VAT rates') %>% 
+    layout(
+       xaxis = list(title = '',font = t_8), 
+    yaxis = list(title = ''),
+    legend = list(x = 0.9, y = 0.99),
+    barmode = 'group'
+     )
+
+plt
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Percentage change in VAT revenues
+```{r,eval=TRUE}
+valueBox(round((df_plot$Simulation_Results_1_te/Main_Results$Calibrated_VAT_Est.M_of_denars)*100,2),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+### Tax expenditures
+
+```{r,eval=TRUE}
+
+dat_r<-Est_Rev_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+dat_te<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+
+ dat<-left_join(dat_r,dat_te,by = c("PRODUCT_INDUSTRY_CODE"))%>%
+   dplyr::mutate(te=Final_Demand_Total.y-Final_Demand_Total.x)%>%
+   select(PRODUCT_INDUSTRY_CODE,te)
+
+colnames(dat) <- c('NACE', 'te')
+
+plt <- plot_ly(dat) %>% 
+  add_trace(x = ~NACE, y = ~te, type = 'bar', name = 'Before reform') %>% 
+    layout(
+       xaxis = list(title = '',font = t_8), 
+    yaxis = list(title = ''),
+    legend = list(x = 0.9, y = 0.99),
+    barmode = 'group'#,#,font = t_8
+     )
+
+
+plt
+
+
+```
+
+
+Simulation results
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Fiscal impact of simulation (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Result_Simulation%>%
+  dplyr::select(Simulated_Change_in_Revenues.M_of_denars)
+
+
+valueBox(round(sum(df_plot$Simulated_Change_in_Revenues.M_of_denars),0),
+         icon="fa-chart-area",
+          color = "blue")
+```
+
+
+### VAT revenues (before and after reform)
+
+```{r,eval=TRUE}
+ 
+dat_r<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+dat_ba<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+
+ dat<-left_join(dat_r,dat_ba,by = c("PRODUCT_INDUSTRY_CODE"))
+
+
+
+colnames(dat) <- c('NACE', 'series1', 'series2')
+
+plt <- plot_ly(dat) %>% 
+  add_trace(x = ~NACE, y = ~series2, type = 'bar', name = 'Before reform') %>% 
+  add_trace(x = ~NACE, y = ~series1, type = 'bar', name = 'After reform') %>% 
+  layout(
+       xaxis = list(title = '',font = t_8), 
+    yaxis = list(title = ''),
+    legend = list(x = 0.9, y = 0.99),
+    barmode = 'group'
+     )
+
+
+plt
+
+
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Percentage change in VAT revenues
+```{r,eval=TRUE}
+
+df_plot<-Result_Simulation%>%
+  dplyr::select(Simulated_Change_in_Revenues.Prc)
+
+
+valueBox(round(sum(df_plot$Simulated_Change_in_Revenues.Prc),2),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+### Difference of revenue after reform (in LCU millions)
+
+```{r,eval=TRUE}
+
+dat_r<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+dat_ba<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Total)%>%
+  data.table()
+
+
+ dat<-left_join(dat_r,dat_ba,by = c("PRODUCT_INDUSTRY_CODE"))
+
+
+colnames(dat) <- c('NACE', 'series1', 'series2')
+
+dat$diff<-dat$series1-dat$series2
+
+dat$diff<-round(dat$diff,1)
+
+plt <- plot_ly(dat) %>% 
+  add_trace(x = ~NACE, y = ~diff, type = 'bar', name = 'Before reform') %>% 
+  layout(
+       xaxis = list(title = '',font = t_8), 
+    yaxis = list(title = ''),
+    legend = list(x = 0.9, y = 0.99),
+    barmode = 'group'
+     )
+
+
+plt
+
+
+```
+
+
+
+
+
+Industries
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### VAT revenues from Industries (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Total_Revenues_from_Intermediate_Inputs)
+
+
+valueBox(round(sum(df_plot$Total_Revenues_from_Intermediate_Inputs),0),
+         icon="fa-chart-pie",
+          color = "blue")
+```
+
+
+### VAT revenues from industries (Before reform) 
+
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Total_Revenues_from_Intermediate_Inputs)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title="", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Intermediate Inputs",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)# )
+
+    treemap
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from industries (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Total_Revenues_from_Intermediate_Inputs)
+
+
+valueBox(round(sum(df_plot$Total_Revenues_from_Intermediate_Inputs),0),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+
+###  VAT revenues from industries (After reform) 
+
+```{r,eval=TRUE}
+ 
+df<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Total_Revenues_from_Intermediate_Inputs)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    
+   df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title=" ", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Households",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+    treemap
+
+```
+
+
+
+
+
+NPISH
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### VAT revenues from NPISH (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_NPISH)
+
+
+valueBox(round(sum(df_plot$Final_Demand_NPISH),0),
+         icon="fa-chart-pie",
+          color = "blue")
+```
+
+
+### VAT revenues from NPISH (Before reform)
+
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_NPISH)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title="", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Intermediate Inputs",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+    
+    treemap
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from NPISH (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_NPISH)
+
+
+valueBox(round(sum(df_plot$Final_Demand_NPISH),0),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+
+###  VAT revenues from NPISH (After reform)
+
+```{r,eval=TRUE}
+ 
+df<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_NPISH)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    
+   df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title=" ", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Households",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+    
+   treemap
+ 
+```
+
+
+
+Government
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### VAT revenues from Government (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Government)
+
+
+valueBox(round(sum(df_plot$Final_Demand_Government),0),
+         icon="fa-chart-pie",
+          color = "blue")
+```
+
+
+### VAT revenues from Government (Before reform)
+
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Government)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title="", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Intermediate Inputs",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+treemap  
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from Government (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Government)
+
+
+valueBox(round(sum(df_plot$Final_Demand_Government),0),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+
+###  VAT revenues from Government (After reform)
+
+```{r,eval=TRUE}
+ 
+df<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_Government)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    
+   df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title=" ", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Households",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+    treemap
+
+```
+
+Households
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### VAT revenues from households (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_HH)
+
+
+valueBox(round(sum(df_plot$Final_Demand_HH),0),
+         icon="fa-chart-pie",
+          color = "blue")
+```
+
+
+### VAT revenues from households (Before reform)
+
+```{r,eval=TRUE}
+
+df<-revenue_vat_total_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_HH)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title="", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Intermediate Inputs",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+    treemap
+
+
+``` 
+
+Row
+-----------------------------------------------------------------------
+
+### VAT revenues from households (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_HH)
+
+
+valueBox(round(sum(df_plot$Final_Demand_HH),0),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+
+###  VAT revenues from households (After reform)
+
+```{r,eval=TRUE}
+ 
+df<-Revenue_VAT_TOTAL%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,Final_Demand_HH)
+
+    df<-melt(df)
+
+    df<-df%>%
+      dplyr::mutate(value=round(value),0)
+    
+    
+   df$SUT_division<-"CPA Divisions"
+
+    treemap<-plot_ly(data = df,
+                                 type= "treemap",
+                                 values= ~value,
+                                 labels= ~PRODUCT_INDUSTRY_CODE,
+                                 parents=  ~SUT_division,
+                                 domain= list(column=0),
+                                 name = " ",
+                                 textinfo="label+value+percent parent")  %>%
+                                 layout(title=" ", font = t,
+                                 annotations =
+                                 list(x = 0, y = -0.1,
+                                 title = "VAT revenues from Households",
+                                 text = "Source: WB staff estimation",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+    treemap
+    
+
+```
+
+Effective VAT rates
+=======================================================================
+
+Row {data-height=850}
+-----------------------------------------------------------------------
+
+### Fiscal impact of simulation (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Result_Simulation%>%
+  dplyr::select(Simulated_Change_in_Revenues.M_of_denars)
+
+
+valueBox(round(sum(df_plot$Simulated_Change_in_Revenues.M_of_denars),0),
+         icon="fa-chart-area",
+          color = "blue")
+```
+
+
+
+
+### Effective VAT rates accross CPA division
+
+```{r,eval=TRUE}
+
+ dat_r<-effective_vat_rates%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,EFFECTIVE_VAT_RATE_TOTAL)%>%
+  data.table()
+
+dat_te<-effective_vat_rates_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,EFFECTIVE_VAT_RATE_TOTAL)%>%
+  data.table()
+
+
+ dat<-left_join(dat_r,dat_te,by = c("PRODUCT_INDUSTRY_CODE"))%>%
+   select(PRODUCT_INDUSTRY_CODE,EFFECTIVE_VAT_RATE_TOTAL.y,EFFECTIVE_VAT_RATE_TOTAL.x)
+  dat[is.na(dat)] <- 0
+
+  dat[dat<0] <- 0
+  
+  
+colnames(dat) <- c('NACE', 'efective_VAT_bu','efective_VAT_r')
+
+plt <- plot_ly(dat) %>% 
+  add_trace(x = ~NACE, y = ~efective_VAT_bu, type = 'bar', name = 'Before reform') %>% 
+  add_trace(x = ~NACE, y = ~efective_VAT_r, type = 'bar', name = 'After reform') %>% 
+    layout(
+      xaxis = list(title = ''
+                 ), 
+    yaxis = list(title = ''),
+    legend = list(x = 0.9, y = 0.99),
+    barmode = 'group'
+     )
+
+
+plt
+    
+```
+
+Row
+-----------------------------------------------------------------------
+
+
+### Percentage change in VAT revenues
+```{r,eval=TRUE}
+
+df_plot<-Result_Simulation%>%
+  dplyr::select(Simulated_Change_in_Revenues.Prc)
+
+
+valueBox(round(sum(df_plot$Simulated_Change_in_Revenues.Prc),2),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+
+###  Effective VAT rates difference (before and after reform)
+
+
+```{r,eval=TRUE}
+
+dat_r<-effective_vat_rates%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,EFFECTIVE_VAT_RATE_TOTAL)%>%
+  data.table()
+
+dat_te<-effective_vat_rates_bu%>%
+  dplyr::select(PRODUCT_INDUSTRY_CODE,EFFECTIVE_VAT_RATE_TOTAL)%>%
+  data.table()
+
+
+ dat<-left_join(dat_r,dat_te,by = c("PRODUCT_INDUSTRY_CODE"))%>%
+   select(PRODUCT_INDUSTRY_CODE,EFFECTIVE_VAT_RATE_TOTAL.x,EFFECTIVE_VAT_RATE_TOTAL.y)
+  dat[is.na(dat)] <- 0
+
+  dat<-dat%>%
+    dplyr::mutate(diff_effective_rate=EFFECTIVE_VAT_RATE_TOTAL.x-EFFECTIVE_VAT_RATE_TOTAL.y)%>%
+    dplyr::select(PRODUCT_INDUSTRY_CODE,diff_effective_rate)
+  
+  dat$diff_effective_rate<-round(dat$diff_effective_rate,2)
+  
+colnames(dat) <- c('NACE', 'diff_effective_rate')
+
+plt <- plot_ly(dat) %>% 
+  add_trace(x = ~NACE, y = ~diff_effective_rate, type = 'bar', name = 'Before reform') %>% 
+    layout(
+       xaxis = list(title = '',font = t_8), 
+    yaxis = list(title = ''),
+    legend = list(x = 0.9, y = 0.99),
+    barmode = 'group'
+     )
+
+
+plt
+                    
+```
+
+
+HBS
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Distribution of expenditures
+
+```{r}
+vat_effective_bu<-hbs_bu%>%
+  dplyr::select(total_consumption,VAT_TOTAL)%>%
+  dplyr::mutate(effective_vat_before_reform=VAT_TOTAL/total_consumption)%>%
+  dplyr::filter(total_consumption<=6500000)
+
+fig <-plot_ly(
+  data = vat_effective_bu,
+  x = ~total_consumption,
+  type = "histogram"
+)
+
+fig <- fig %>% layout(title = ' ',
+                      xaxis = list(title = 'Expenditures in LCU million'),
+                      yaxis = list(title = 'Number of households'))
+
+fig
+
+```
+
+### Effective tax rate by housholds expenditures
+
+```{r,eval=TRUE}
+vat_effective_bu<-hbs_bu%>%
+  dplyr::select(total_consumption,VAT_TOTAL)%>%
+  dplyr::mutate(effective_vat_before_reform=VAT_TOTAL/total_consumption) %>%
+  dplyr::filter(total_consumption<=6500000)
+
+
+vat_effective<-hbs%>%
+  dplyr::select(total_consumption,VAT_TOTAL)%>%
+  dplyr::mutate(effective_vat_after_reform=VAT_TOTAL/total_consumption) %>%
+  dplyr::filter(total_consumption<=6500000)
+vat_effective$total_consumption<-NULL
+
+vat_effective_hbs<-cbind(vat_effective_bu,vat_effective)%>%
+  select(total_consumption,effective_vat_before_reform,effective_vat_after_reform)
+
+
+fit <- sm.regression(vat_effective_hbs$total_consumption, vat_effective_hbs$effective_vat_before_reform, display="none")
+
+
+fit1 <- sm.regression(vat_effective_hbs$total_consumption, vat_effective_hbs$effective_vat_after_reform, display="none")
+
+data_merged_plot<-data.frame(
+   total_consumption=fit$eval.points,
+   effective_vat_before_reform=fit$estimate,
+   effective_vat_after_reform=fit1$estimate)
+  
+
+
+fig <- plot_ly(data_merged_plot, x = ~total_consumption, y = ~effective_vat_before_reform, name = "Before reform", type = 'scatter', mode = 'lines',
+               line = list(dash = "solid",width=5))
+fig <- fig %>% add_trace(y = ~effective_vat_after_reform, name = "After reform", line = list(dash = "dash",width=5))%>%
+  layout(
+    xaxis = list(title = 'Expenditures in LCU million'),
+    yaxis = list(title = ''),
+    legend = list(x = 0.01, y = 0.99)
+  )
+
+fig
+         
+   
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Effective VAT rate by centiles groups
+
+```{r,eval=TRUE}
+ 
+vat_effective_bu<-hbs_bu%>%
+  dplyr::select(centiles,total_consumption,VAT_TOTAL)%>%
+  dplyr::group_by(centiles)%>%
+  dplyr::summarise(total_consumption=sum(total_consumption),VAT_TOTAL=sum(VAT_TOTAL))%>%
+  dplyr::mutate(effective_vat_before_reform=VAT_TOTAL/total_consumption)%>%
+  dplyr::select(centiles,effective_vat_before_reform)
+
+
+vat_effective<-hbs%>%
+  dplyr::select(centiles,total_consumption,VAT_TOTAL)%>%
+  dplyr::group_by(centiles)%>%
+  dplyr::summarise(total_consumption=sum(total_consumption),VAT_TOTAL=sum(VAT_TOTAL))%>%
+  dplyr::mutate(effective_vat_after_reform=VAT_TOTAL/total_consumption)%>%
+  dplyr::select(centiles,effective_vat_after_reform)
+
+
+vat_effective_final<-left_join(vat_effective_bu,vat_effective,by = c("centiles"))%>%
+  data.table()
+
+fig <- plot_ly(vat_effective_final, x = ~centiles, y = ~effective_vat_before_reform, name = "Before reform", type = 'scatter', mode = 'lines',
+               line = list(dash = "solid",width=5))
+fig <- fig %>% add_trace(y = ~effective_vat_after_reform, name = "After reform", line = list(dash = "dash",width=5))%>%
+  layout(
+    xaxis = list(title = 'Centiles'),
+    yaxis = list(title = ''),
+    legend = list(x = 0.01, y = 0.99)
+  )
+fig
+
+ 
+          
+```
+
+
+### Effective VAT rate by decile groups
+
+```{r,eval=TRUE}
+
+vat_effective_bu<-hbs_bu%>%
+  dplyr::select(deciles,total_consumption,VAT_TOTAL)%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(total_consumption=sum(total_consumption),VAT_TOTAL=sum(VAT_TOTAL))%>%
+  dplyr::mutate(effective_vat_before_reform=VAT_TOTAL/total_consumption)%>%
+  dplyr::select(deciles,effective_vat_before_reform)
+
+
+vat_effective<-hbs%>%
+  dplyr::select(deciles,total_consumption,VAT_TOTAL)%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(total_consumption=sum(total_consumption),VAT_TOTAL=sum(VAT_TOTAL))%>%
+  dplyr::mutate(effective_vat_after_reform=VAT_TOTAL/total_consumption)%>%
+  dplyr::select(deciles,effective_vat_after_reform)
+
+
+vat_effective_final<-left_join(vat_effective_bu,vat_effective,by = c("deciles"))%>%
+  data.table()
+
+plt <- plot_ly(vat_effective_final) %>% 
+  add_trace(x = ~deciles, y = ~effective_vat_before_reform, type = 'bar', name = 'With current VAT rates') %>% 
+  add_trace(x = ~deciles, y = ~effective_vat_after_reform, type = 'bar', name = 'With standard VAT rates') %>% 
+    layout(
+       xaxis = list(title = 'Deciles',font = t_8), 
+    yaxis = list(title = ''),
+    legend = list(x = 0.01, y = 0.99),
+    barmode = 'group'
+     )
+
+plt
+
+
+                       
+```
+
+
+
+HBS structure
+=======================================================================
+
+Row
+-----------------------------------------------------------------------
+
+### Distribution of expenditures
+
+```{r,eval=TRUE}
+
+dat_r<-hbs_bu%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages",
+                              "Alcoholic Beverages Tobacco and Narcotics",
+                              "Clothing and footwear",
+                              "Housing Water,Electricity,Gas and Other Fuels",
+                              "Furnishings Household Equipment etc.",
+                              "Health",
+                              "Transport",
+                              "Communication",
+                              "Recreation and Culture",
+                              "Education",
+                              "Restaurants and Hotels",
+                              "Miscellaneous Goods and Services")
+                              
+
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics`),
+                   `Clothing and footwear` = sum(`Clothing and footwear`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.`),
+                   `Health` = sum(`Health`),
+                   `Transport` = sum(`Transport`),
+                   `Communication` = sum(`Communication`),
+                   `Recreation and Culture` = sum(`Recreation and Culture`),
+                   `Education` = sum(`Education`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services`))
+                   
+ 
+t_df1<-melt(dat_r1, id.vars = c("deciles"))
+t_df1$color <- factor(t_df1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                 "chartreuse","orange","purple", "gold","tomato",
+                                                 "darkturquoise", "forestgreen"))
+
+Expenditure_chart <- plot_ly(t_df1, x = ~deciles, y = ~value,
+                                   type = 'bar',
+                                   marker = list(color = ~color), name = ~variable) %>%
+        #layout(yaxis = list(title = 'Millions denars'), barmode = 'stack')
+        #layout(title = " ",yaxis = list(title = 'Millions denars'), barmode = 'stack')
+  layout(barmode = "stack",
+         xaxis = list(title = ''),
+         yaxis = list(title = ''),
+         legend = list(x = 0.01, y = 0.99))
+ Expenditure_chart   
+
+```
+
+### Used assets according to the purpose of consumption, per household in percentage
+
+```{r,eval=TRUE}
+
+dat_r<-hbs_bu%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages",
+                "Alcoholic Beverages Tobacco and Narcotics",
+                "Clothing and footwear",
+                "Housing Water,Electricity,Gas and Other Fuels",
+                "Furnishings Household Equipment etc.",
+                "Health",
+                "Transport",
+                "Communication",
+                "Recreation and Culture",
+                "Education",
+                "Restaurants and Hotels",
+                "Miscellaneous Goods and Services")
+
+
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics`),
+                   `Clothing and footwear` = sum(`Clothing and footwear`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.`),
+                   `Health` = sum(`Health`),
+                   `Transport` = sum(`Transport`),
+                   `Communication` = sum(`Communication`),
+                   `Recreation and Culture` = sum(`Recreation and Culture`),
+                   `Education` = sum(`Education`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services`))
+
+
+t_df1<-melt(dat_r1, id.vars = c("deciles"))
+
+t_df1g<-t_df1%>%
+  dplyr:: group_by(deciles)%>%
+  dplyr:: summarise(GroupSum = sum(value  , na.rm = T))%>%
+  select(deciles,GroupSum)
+
+
+
+t_df1g_final<-left_join(t_df1,t_df1g,by = c("deciles"))
+
+
+t_df1g_final1<-group_by(t_df1g_final,deciles) %>% mutate(Pct = value/GroupSum)
+
+
+t_df1g_final1$color <- factor(t_df1g_final1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                 "chartreuse","orange","purple", "gold","tomato",
+                                                 "darkturquoise", "forestgreen"))
+
+
+#CHART
+Expenditure_chart_pct <- plot_ly(t_df1g_final1, x = ~deciles, y = ~Pct,
+                                 type = 'bar',
+                                 marker = list(color = ~color), name = ~variable) %>%
+  layout(title = " ",
+         xaxis = list(title = ''),
+         yaxis = list(title = 'Percentage'),
+         barmode = 'stack',
+         showlegend = FALSE
+         )
+Expenditure_chart_pct
+
+
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Distribution of VAT revenues
+
+```{r,eval=TRUE}
+
+dat_r<-hbs_bu%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages-VAT",
+                                                                    "Alcoholic Beverages Tobacco and Narcotics-VAT",
+                                                                    "Clothing and footwear-VAT",
+                                                                    "Housing Water,Electricity,Gas and Other Fuels-VAT",
+                                                                    "Furnishings Household Equipment etc.-VAT",
+                                                                    "Health-VAT",
+                                                                    "Transport-VAT",
+                                                                    "Communication-VAT",
+                                                                    "Recreation and Culture-VAT",
+                                                                    "Education-VAT",
+                                                                    "Restaurants and Hotels-VAT",
+                                                                    "Miscellaneous Goods and Services-VAT")
+                              
+
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages-VAT`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics-VAT`),
+                   `Clothing and footwear` = sum(`Clothing and footwear-VAT`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels-VAT`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.-VAT`),
+                   `Health` = sum(`Health-VAT`),
+                   `Transport` = sum(`Transport-VAT`),
+                   `Communication` = sum(`Communication-VAT`),
+                   `Recreation and Culture` = sum(`Recreation and Culture-VAT`),
+                   `Education` = sum(`Education-VAT`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels-VAT`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services-VAT`))
+                   
+ 
+t_df1<-melt(dat_r1, id.vars = c("deciles"))
+t_df1$color <- factor(t_df1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                 "chartreuse","orange","purple", "gold","tomato",
+                                                 "darkturquoise", "forestgreen"))
+
+Expenditure_chart <- plot_ly(t_df1, x = ~deciles, y = ~value,
+                                   type = 'bar',
+                                   marker = list(color = ~color), name = ~variable) %>%
+        #layout(yaxis = list(title = 'Millions denars'), barmode = 'stack')
+        #layout(title = " ",yaxis = list(title = 'Millions denars'), barmode = 'stack')
+  layout(barmode = "stack",
+         xaxis = list(title = ''),
+         yaxis = list(title = ''),
+         legend = list(x = 0.01, y = 0.99))
+ Expenditure_chart   
+
+```
+
+### Structure of VAT revenues according to the purpose of consumption, per households decile groups
+
+```{r,eval=TRUE}
+dat_r<-hbs_bu%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages-VAT",
+                                                                    "Alcoholic Beverages Tobacco and Narcotics-VAT",
+                                                                    "Clothing and footwear-VAT",
+                                                                    "Housing Water,Electricity,Gas and Other Fuels-VAT",
+                                                                    "Furnishings Household Equipment etc.-VAT",
+                                                                    "Health-VAT",
+                                                                    "Transport-VAT",
+                                                                    "Communication-VAT",
+                                                                    "Recreation and Culture-VAT",
+                                                                    "Education-VAT",
+                                                                    "Restaurants and Hotels-VAT",
+                                                                    "Miscellaneous Goods and Services-VAT")
+                              
+
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages-VAT`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics-VAT`),
+                   `Clothing and footwear` = sum(`Clothing and footwear-VAT`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels-VAT`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.-VAT`),
+                   `Health` = sum(`Health-VAT`),
+                   `Transport` = sum(`Transport-VAT`),
+                   `Communication` = sum(`Communication-VAT`),
+                   `Recreation and Culture` = sum(`Recreation and Culture-VAT`),
+                   `Education` = sum(`Education-VAT`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels-VAT`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services-VAT`))
+
+
+t_df1<-melt(dat_r1, id.vars = c("deciles"))
+
+t_df1g<-t_df1%>%
+  dplyr:: group_by(deciles)%>%
+  dplyr:: summarise(GroupSum = sum(value  , na.rm = T))%>%
+  select(deciles,GroupSum)
+
+
+
+t_df1g_final<-left_join(t_df1,t_df1g,by = c("deciles"))
+
+
+t_df1g_final1<-group_by(t_df1g_final,deciles) %>% mutate(Pct = value/GroupSum)
+
+
+t_df1g_final1$color <- factor(t_df1g_final1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                 "chartreuse","orange","purple", "gold","tomato",
+                                                 "darkturquoise", "forestgreen"))
+
+
+#CHART
+Expenditure_chart_pct <- plot_ly(t_df1g_final1, x = ~deciles, y = ~Pct,
+                                 type = 'bar',
+                                 marker = list(color = ~color), name = ~variable) %>%
+  layout(title = " ",
+         xaxis = list(title = ''),
+         yaxis = list(title = 'Percentage'),
+         barmode = 'stack',
+         showlegend = FALSE
+         )
+Expenditure_chart_pct
+
+
+
+```
+
+
+
+COICOP 
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+### Fiscal impact of simulation (in LCU millions)
+```{r,eval=TRUE}
+
+df_plot<-Result_Simulation%>%
+  dplyr::select(Simulated_Change_in_Revenues.M_of_denars)
+
+
+valueBox(round(sum(df_plot$Simulated_Change_in_Revenues.M_of_denars),0),
+         icon="fa-chart-area",
+          color = "blue")
+```
+
+
+### VAT revenues from households by COICOP (Before reform)
+
+```{r,eval=TRUE}
+dat_r<-hbs_bu%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages-VAT",
+                              "Alcoholic Beverages Tobacco and Narcotics-VAT",
+                              "Clothing and footwear-VAT",
+                              "Housing Water,Electricity,Gas and Other Fuels-VAT",
+                              "Furnishings Household Equipment etc.-VAT",
+                              "Health-VAT",
+                              "Transport-VAT",
+                              "Communication-VAT",
+                              "Recreation and Culture-VAT",
+                              "Education-VAT",
+                              "Restaurants and Hotels-VAT",
+                              "Miscellaneous Goods and Services-VAT")
+                              
+
+
+
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages-VAT`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics-VAT`),
+                   `Clothing and footwear` = sum(`Clothing and footwear-VAT`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels-VAT`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.-VAT`),
+                   `Health` = sum(`Health-VAT`),
+                   `Transport` = sum(`Transport-VAT`),
+                   `Communication` = sum(`Communication-VAT`),
+                   `Recreation and Culture` = sum(`Recreation and Culture-VAT`),
+                   `Education` = sum(`Education-VAT`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels-VAT`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services-VAT`))
+    
+t_df1<-melt(dat_r1, id.vars = c("deciles"))
+t_df1$colr <- factor(t_df1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                 "chartreuse","orange","purple", "gold","tomato",
+                                                 "darkturquoise", "forestgreen"))
+
+t_df1<-plot_ly(data = t_df1, labels = ~variable, values = ~value, type = "pie",
+        marker = list(colors = ~colr), hole = .6) %>% 
+  layout(title = " ",
+         showlegend = T,
+                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),#)
+          annotations =
+                            list(x = 0, y = -0.1,
+                                 text = "Source: ",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+t_df1
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Percentage change in VAT revenues
+```{r,eval=TRUE}
+
+df_plot<-Result_Simulation%>%
+  dplyr::select(Simulated_Change_in_Revenues.Prc)
+
+valueBox(round(sum(df_plot$Simulated_Change_in_Revenues.Prc),2),
+         icon="fa-chart-pie",
+          color = "red")
+```
+
+
+### VAT revenues from households by COICOP (After reform)
+
+```{r,eval=TRUE}
+
+dat_r<-hbs%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages-VAT",
+                              "Alcoholic Beverages Tobacco and Narcotics-VAT",
+                              "Clothing and footwear-VAT",
+                              "Housing Water,Electricity,Gas and Other Fuels-VAT",
+                              "Furnishings Household Equipment etc.-VAT",
+                              "Health-VAT",
+                              "Transport-VAT",
+                              "Communication-VAT",
+                              "Recreation and Culture-VAT",
+                              "Education-VAT",
+                              "Restaurants and Hotels-VAT",
+                              "Miscellaneous Goods and Services-VAT")
+                              
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages-VAT`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics-VAT`),
+                   `Clothing and footwear` = sum(`Clothing and footwear-VAT`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels-VAT`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.-VAT`),
+                   `Health` = sum(`Health-VAT`),
+                   `Transport` = sum(`Transport-VAT`),
+                   `Communication` = sum(`Communication-VAT`),
+                   `Recreation and Culture` = sum(`Recreation and Culture-VAT`),
+                   `Education` = sum(`Education-VAT`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels-VAT`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services-VAT`))
+
+                 
+t_df1<-melt(dat_r1, id.vars = c("deciles"))
+
+t_df1$colr <- factor(t_df1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                 "chartreuse","orange","purple", "gold","tomato",
+                                                 "darkturquoise", "forestgreen"))
+
+t_df1<-plot_ly(data = t_df1, labels = ~variable, values = ~value, type = "pie",
+        marker = list(colors = ~colr), hole = .6) %>% 
+  layout(title = " ",
+         showlegend = T,
+                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),#)
+          annotations =
+                            list(x = 0, y = -0.1,
+                                 text = "Source: ",
+                                 showarrow = F,
+                                 xref='paper',
+                                 yref='paper'),font = t)
+
+         
+         
+
+
+t_df1
+
+```
+
+
+
+Decile groups 
+=======================================================================
+
+Row {data-height=650}
+-----------------------------------------------------------------------
+
+
+
+### Estimated VAT revenues by decile groups (left bars before reform and right after reform)
+
+```{r,eval=TRUE}
+dat_r<-hbs_bu%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages-VAT",
+                              "Alcoholic Beverages Tobacco and Narcotics-VAT",
+                              "Clothing and footwear-VAT",
+                              "Housing Water,Electricity,Gas and Other Fuels-VAT",
+                              "Furnishings Household Equipment etc.-VAT",
+                              "Health-VAT",
+                              "Transport-VAT",
+                              "Communication-VAT",
+                              "Recreation and Culture-VAT",
+                              "Education-VAT",
+                              "Restaurants and Hotels-VAT",
+                              "Miscellaneous Goods and Services-VAT")
+
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages-VAT`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics-VAT`),
+                   `Clothing and footwear` = sum(`Clothing and footwear-VAT`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels-VAT`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.-VAT`),
+                   `Health` = sum(`Health-VAT`),
+                   `Transport` = sum(`Transport-VAT`),
+                   `Communication` = sum(`Communication-VAT`),
+                   `Recreation and Culture` = sum(`Recreation and Culture-VAT`),
+                   `Education` = sum(`Education-VAT`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels-VAT`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services-VAT`))
+                   
+                   
+    
+t_df1<-melt(dat_r1, id.vars = c("deciles"))
+ t_df1$color <- factor(t_df1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                  "chartreuse","orange","purple", "gold","tomato",
+                                                  "darkturquoise", "forestgreen"))
+
+
+dat_r<-hbs%>%
+  dplyr::select(deciles,"Food and Non-Alcoholic Beverages-VAT",
+                              "Alcoholic Beverages Tobacco and Narcotics-VAT",
+                              "Clothing and footwear-VAT",
+                              "Housing Water,Electricity,Gas and Other Fuels-VAT",
+                              "Furnishings Household Equipment etc.-VAT",
+                              "Health-VAT",
+                              "Transport-VAT",
+                              "Communication-VAT",
+                              "Recreation and Culture-VAT",
+                              "Education-VAT",
+                              "Restaurants and Hotels-VAT",
+                              "Miscellaneous Goods and Services-VAT")
+                              
+
+
+
+dat_r1<-dat_r%>%
+  dplyr::group_by(deciles)%>%
+  dplyr::summarise(`Food and Non-Alcoholic Beverages` = sum(`Food and Non-Alcoholic Beverages-VAT`),
+                   `Alcoholic Beverages Tobacco and Narcotics` = sum(`Alcoholic Beverages Tobacco and Narcotics-VAT`),
+                   `Clothing and footwear` = sum(`Clothing and footwear-VAT`),
+                   `Housing Water,Electricity,Gas and Other Fuels` = sum(`Housing Water,Electricity,Gas and Other Fuels-VAT`),
+                   `Furnishings Household Equipment etc.` = sum(`Furnishings Household Equipment etc.-VAT`),
+                   `Health` = sum(`Health-VAT`),
+                   `Transport` = sum(`Transport-VAT`),
+                   `Communication` = sum(`Communication-VAT`),
+                   `Recreation and Culture` = sum(`Recreation and Culture-VAT`),
+                   `Education` = sum(`Education-VAT`),
+                   `Restaurants and Hotels` = sum(`Restaurants and Hotels-VAT`),
+                   `Miscellaneous Goods and Services` = sum(`Miscellaneous Goods and Services-VAT`))
+
+                 
+
+t_df2<-melt(dat_r1, id.vars = c("deciles"))
+t_df2$color <- factor(t_df1$variable, labels = c("royalblue", "cyan", "darkorange", "red", "brown",
+                                                  "chartreuse","orange","purple", "gold","tomato",
+                                                  "darkturquoise", "forestgreen"))
+
+
+
+# Merging two databases
+t_df3<-left_join(t_df1,t_df2,by = c("variable"))
+
+t_df1<-t_df1%>%
+  dplyr:: rename(c("variable.x"= "variable",
+                   "value.x"="value",
+                   "color.x"="color"
+
+  ))
+
+
+
+t_df3<-cbind(t_df1,t_df2)
+
+
+t_df4 <- pivot_longer(t_df3, cols = c(value.x,value ),
+                      names_to = "group") %>% 
+  mutate(group = ifelse(group == "value", " After reform",
+                        "Before reform"))
+
+plot_ly(t_df4, x = ~list(deciles, group), y = ~value, 
+        color = ~variable, colors = ~as.character(color), type = "bar") %>% 
+  layout(barmode = "stack",
+         xaxis = list(title = ''),
+         yaxis = list(title = ''),
+         legend = list(x = 0.01, y = 0.99))
+
+
+```
+
+
+
+
+
+Forecast
+=======================================================================
+
+
+
+### Forecast of VAT revenues
+
+```{r}
+
+VAT_FORECAST<-VAT_FORECAST%>%
+  dplyr::filter(Year>2018)
+
+VAT_FORECAST$Nominal_VAT_NET<-VAT_FORECAST$Nominal_VAT_NET*1000000
+VAT_FORECAST$New_Simulation_VAT<-VAT_FORECAST$New_Simulation_VAT*1000000
+
+
+fig <- plot_ly(VAT_FORECAST, x = ~Year , y = ~Nominal_VAT_NET, name = "Before reform", type = 'scatter', mode = 'lines',
+               line = list(dash = "solid",width=5))
+fig <- fig %>% add_trace(y = ~New_Simulation_VAT, name = "After reform", line = list(dash = "dash",width=5))%>%
+  layout(
+    xaxis = list(title = 'Years'),
+    yaxis = list(title = 'VAT revenues'),
+    legend = list(x = 0.01, y = 0.99)
+  )
+fig
+
+
+
+```
+
+### Forecast of tax expenditures
+
+```{r}
+
+VAT_FORECAST<-VAT_FORECAST%>%
+  dplyr::filter(Year>2018)
+
+VAT_FORECAST$Tax_expenditures<-VAT_FORECAST$Tax_expenditures*1000000
+
+plt <- plot_ly(VAT_FORECAST) %>%
+  add_trace(x = ~Year , y = ~Tax_expenditures, type = 'bar', name = 'With current VAT rates') %>%
+    layout(
+       xaxis = list(title = '',font = t_8),
+    yaxis = list(title = ''),
+    legend = list(x = 0.01, y = 0.99),
+    barmode = 'group'
+     )
+
+plt
+
+   
+```
+

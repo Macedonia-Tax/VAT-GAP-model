@@ -5,10 +5,10 @@ install.packages(packageurl, repos=NULL, type="source")
 
 
 
-list.of.packages <- c("DataEditR", "data.table","tidyr","readxl","dplyr","reshape2","xlsx",
+list.of.packages <- c("DataEditR", "data.table","tidyr","readxl","dplyr","reshape2","openxlsx",
                       "flexdashboard","ggplot2","plotly","tidyverse","knitr","DT","rpivotTable",
                       "forecast","openintro","highcharter","ggvis","DataCombine","viridisLite","orca","sass","vctrs","markdown",
-                      "sm","ks","rlang","shades")
+                      "sm","ks","rlang","shades","tidyverse")
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
