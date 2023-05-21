@@ -1660,8 +1660,8 @@ vat_effective_final<-left_join(vat_effective_bu,vat_effective,by = c("deciles"))
   data.table()
 
 plt <- plot_ly(vat_effective_final) %>% 
-  add_trace(x = ~deciles, y = ~effective_vat_before_reform, type = 'bar', name = 'With current VAT rates') %>% 
-  add_trace(x = ~deciles, y = ~effective_vat_after_reform, type = 'bar', name = 'With standard VAT rates') %>% 
+  add_trace(x = ~deciles, y = ~effective_vat_before_reform, type = 'bar', name = 'Before reform') %>% 
+  add_trace(x = ~deciles, y = ~effective_vat_after_reform, type = 'bar', name = 'After reform') %>% 
     layout(
        xaxis = list(title = 'Deciles',font = t_8), 
     yaxis = list(title = ''),
