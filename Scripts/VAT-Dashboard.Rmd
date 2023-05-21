@@ -354,6 +354,9 @@ https://www.stat.gov.mk/KlasifikaciiNomenklaturi_en.aspx?id=3
 VAT-GAP EU
 https://taxation-customs.ec.europa.eu/business/vat/vat-gap_en
 
+CPA
+https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Statistical_classification_of_products_by_activity_(CPA)
+
 
 
 Decomposition of VAT GAP
